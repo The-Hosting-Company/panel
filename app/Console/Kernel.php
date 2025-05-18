@@ -48,7 +48,7 @@ class Kernel extends ConsoleKernel
 
         if (config('backups.prune_age')) {
             // Every 30 minutes, run the backup pruning command so that any abandoned backups can be deleted.
-            $schedule->command(PruneOrphanedBackupsCommand::class)->everyThirtyMinutes();
+            $schedule->command(PruneOrphanedBackupsCommand::class)->everyThirtyMinutes()->sentryMonitor();
         }
 
         if (config('activity.prune_days')) {

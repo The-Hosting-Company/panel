@@ -6,19 +6,19 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 
-class QueueWorkerServiceCommand extends Command
+class HorizonWorkerServiceCommand extends Command
 {
     protected $description = 'Create the service for the queue worker.';
 
-    protected $signature = 'p:environment:queue-service
-        {--service-name= : Name of the queue worker service.}
+    protected $signature = 'p:environment:horizon-service
+        {--service-name= : Name of the Horizon worker service.}
         {--user= : The user that PHP runs under.}
         {--group= : The group that PHP runs under.}
         {--overwrite : Force overwrite if the service file already exists.}';
 
     public function handle(): void
     {
-        $serviceName = $this->option('service-name') ?? $this->ask('Queue worker service name', 'pelican-queue');
+        $serviceName = $this->option('service-name') ?? $this->ask('Horizon worker service name', 'horizon');
         $path = '/etc/systemd/system/' . $serviceName  . '.service';
 
         $fileExists = @file_exists($path);
@@ -33,24 +33,23 @@ class QueueWorkerServiceCommand extends Command
 
         $redisUsed = config('queue.default') === 'redis' || config('session.driver') === 'redis' || config('cache.default') === 'redis';
         $afterRedis = $redisUsed ? '
-After=redis-server.service' : '';
+After=valkey-server.service' : '';
 
         $basePath = base_path();
 
-        $success = File::put($path, "# Pelican Queue File
+        $success = File::put($path, "# Pelican Horizon File
 # ----------------------------------
 
 [Unit]
-Description=Pelican Queue Service$afterRedis
+Description=Pelican Horizon Service$afterRedis
 
 [Service]
 User=$user
 Group=$group
 Restart=always
-ExecStart=/usr/bin/php $basePath/artisan queue:work --tries=3
+ExecStart=/usr/bin/php $basePath/artisan horizon
 StartLimitInterval=180
 StartLimitBurst=30
-RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target
@@ -70,7 +69,7 @@ WantedBy=multi-user.target
                 return;
             }
 
-            $this->line('Queue worker service file updated successfully.');
+            $this->line('Horizon worker service file updated successfully.');
         } else {
             $result = Process::run("systemctl enable --now $serviceName.service");
             if ($result->failed()) {
@@ -79,7 +78,7 @@ WantedBy=multi-user.target
                 return;
             }
 
-            $this->line('Queue worker service file created successfully.');
+            $this->line('Horizon worker service file created successfully.');
         }
     }
 }

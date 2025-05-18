@@ -41,6 +41,7 @@ class EmailSettingsCommand extends Command
                 'mailgun' => 'Mailgun',
                 'mandrill' => 'Mandrill',
                 'postmark' => 'Postmark',
+                'ses' => 'AWS Simple Email Service',
             ],
             env('MAIL_MAILER', env('MAIL_DRIVER', 'smtp')),
         );
